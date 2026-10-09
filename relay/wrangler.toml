@@ -1,0 +1,6 @@
+name = "devflow-relay"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+ALLOWED_ORGS = "z4app-organization"

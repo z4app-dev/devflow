@@ -1,0 +1,11 @@
+# Uso: docker compose run --rm wrangler <comando de wrangler>
+# (mas comodo: los atajos del Makefile)
+services:
+  wrangler:
+    build: .
+    image: devflow-wrangler
+    working_dir: /app
+    volumes:
+      - ./:/app
+    env_file:
+      - .env
