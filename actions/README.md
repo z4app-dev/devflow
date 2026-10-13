@@ -11,7 +11,6 @@ Lógica reutilizable de los workflows de devflow. Son composite actions (bash + 
 |---|---|---|
 | `set-status` | Setea el Status del issue en el project (lo agrega si falta). Idempotente. | App devflow |
 | `linked-issues` | Issues que cierra un PR (`closingIssuesReferences`), como JSON. | App devflow |
-| `set-issue-fields` | Completa los issue fields **Rama** y **PR**. Idempotente. | App devflow |
 | `fire-routine` | Dispara la Routine `plan` / `implement` y devuelve el link de sesión. | token de la Routine |
 | `issues-in-range` | Issues cerrados por PRs cuyo merge commit está en `from..to`. | App devflow |
 | `upsert-comment` | Crea o edita un comentario único con marcador `<!-- devflow:<x> -->`. | App devflow |
@@ -21,7 +20,7 @@ inmutables. En los workflows usá `@actions-v1`.
 
 ## Requisitos en el repo
 
-- `.devflow/config.yml` (la leen `set-status` y `set-issue-fields`; necesita `actions/checkout`):
+- `.devflow/config.yml` (la lee `set-status`; necesita `actions/checkout`):
 
   ```yaml
   project: { owner: z4app-organization, number: 1 }
@@ -30,9 +29,8 @@ inmutables. En los workflows usá `@actions-v1`.
   routines:
     plan:      { url_var: DEVFLOW_ROUTINE_PLAN_URL,      token_secret: DEVFLOW_ROUTINE_PLAN_TOKEN }
     implement: { url_var: DEVFLOW_ROUTINE_IMPLEMENT_URL, token_secret: DEVFLOW_ROUTINE_IMPLEMENT_TOKEN }
-  issue_fields: { branch: Rama, pr: PR }
   ```
-- Variable `DEVFLOW_APP_ID` y secret `DEVFLOW_APP_PRIVATE_KEY` (App con Projects write a nivel org,
+- Variable `DEVFLOW_APP_CLIENT_ID` y secret `DEVFLOW_APP_PRIVATE_KEY` (App con Projects write a nivel org,
   Issues y Pull requests).
 
 ## Ejemplos
@@ -42,9 +40,9 @@ steps:
   - uses: actions/checkout@v6
     with: { sparse-checkout: .devflow }
   - id: app
-    uses: actions/create-github-app-token@v2
+    uses: actions/create-github-app-token@v3
     with:
-      app-id: ${{ vars.DEVFLOW_APP_ID }}
+      client-id: ${{ vars.DEVFLOW_APP_CLIENT_ID }}
       private-key: ${{ secrets.DEVFLOW_APP_PRIVATE_KEY }}
       owner: ${{ github.repository_owner }}
 
@@ -58,13 +56,6 @@ steps:
   # Sólo si está en Merged (si no, advierte y sigue):
   - uses: z4app-dev/devflow/actions/set-status@actions-v1
     with: { token: '${{ steps.app.outputs.token }}', issue: '123', status: staging, only_from: merged }
-
-  - uses: z4app-dev/devflow/actions/set-issue-fields@actions-v1
-    with:
-      token: ${{ steps.app.outputs.token }}
-      issue: '123'
-      branch: ${{ github.event.pull_request.head.ref }}
-      pr: ${{ github.event.pull_request.html_url }}
 
   - id: fire
     continue-on-error: true      # para comentar el error en el issue
@@ -105,8 +96,6 @@ cd ab_gym
 export GH_TOKEN=$(gh auth token) REPO=z4app-organization/ab_gym DRY_RUN=1
 ISSUE=362 STATUS=review ../devflow/actions/set-status/set-status.sh
 PR=369 ../devflow/actions/linked-issues/linked-issues.sh
-ISSUE=362 BRANCH=task/362-x PR_URL=https://github.com/z4app-organization/ab_gym/pull/369 \
-  ../devflow/actions/set-issue-fields/set-issue-fields.sh
 FROM_REF=v26.10.5 TO_REF=v26.10.12 ../devflow/actions/issues-in-range/issues-in-range.sh
 NUMBER=362 MARKER=devflow:test BODY='hola' ../devflow/actions/upsert-comment/upsert-comment.sh
 ROUTINE=plan ISSUE=362 \
