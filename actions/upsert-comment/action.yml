@@ -1,0 +1,48 @@
+name: devflow · upsert-comment
+description: Crea o actualiza un comentario único (con marcador HTML) en un issue o PR.
+inputs:
+  token:
+    description: Token con permiso para comentar (el de la App devflow).
+    required: true
+  number:
+    description: Número del issue o PR.
+    required: true
+  marker:
+    description: Nombre del marcador, p. ej. devflow:pr → <!-- devflow:pr -->.
+    required: true
+  body:
+    description: Cuerpo del comentario (Markdown, sin el marcador).
+    required: true
+  mode:
+    description: upsert (crea si no existe) | update-only (sólo edita uno existente).
+    required: false
+    default: upsert
+  repo:
+    description: owner/repo.
+    required: false
+    default: ${{ github.repository }}
+  dry_run:
+    description: '"true" para imprimir qué haría sin comentar.'
+    required: false
+    default: 'false'
+outputs:
+  comment_url:
+    description: URL del comentario (vacío si no se hizo nada).
+    value: ${{ steps.run.outputs.comment_url }}
+  action:
+    description: created | updated | skipped
+    value: ${{ steps.run.outputs.action }}
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      run: '"$GITHUB_ACTION_PATH/upsert-comment.sh"'
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        NUMBER: ${{ inputs.number }}
+        MARKER: ${{ inputs.marker }}
+        BODY: ${{ inputs.body }}
+        MODE: ${{ inputs.mode }}
+        REPO: ${{ inputs.repo }}
+        DRY_RUN: ${{ inputs.dry_run }}

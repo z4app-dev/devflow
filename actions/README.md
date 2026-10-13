@@ -14,6 +14,7 @@ Lógica reutilizable de los workflows de devflow. Son composite actions (bash + 
 | `set-issue-fields` | Completa los issue fields **Rama** y **PR**. Idempotente. | App devflow |
 | `fire-routine` | Dispara la Routine `plan` / `implement` y devuelve el link de sesión. | token de la Routine |
 | `issues-in-range` | Issues cerrados por PRs cuyo merge commit está en `from..to`. | App devflow |
+| `upsert-comment` | Crea o edita un comentario único con marcador `<!-- devflow:<x> -->`. | App devflow |
 
 Versionado: `actions-v1` es un tag **móvil** (último `actions-v1.x.y`); los `actions-v1.x.y` son
 inmutables. En los workflows usá `@actions-v1`.
@@ -75,6 +76,14 @@ steps:
       token: ${{ secrets.DEVFLOW_ROUTINE_PLAN_TOKEN }}
   # → steps.fire.outputs.session_url / steps.fire.outputs.error
 
+  - uses: z4app-dev/devflow/actions/upsert-comment@actions-v1
+    with:
+      token: ${{ steps.app.outputs.token }}
+      number: '123'
+      marker: devflow:pr          # → <!-- devflow:pr -->
+      body: Texto del comentario
+      # mode: update-only        # sólo edita si ya existe
+
   - uses: actions/checkout@v6
     with: { fetch-depth: 0 }     # issues-in-range necesita historia y tags
   - id: range
@@ -99,6 +108,7 @@ PR=369 ../devflow/actions/linked-issues/linked-issues.sh
 ISSUE=362 BRANCH=task/362-x PR_URL=https://github.com/z4app-organization/ab_gym/pull/369 \
   ../devflow/actions/set-issue-fields/set-issue-fields.sh
 FROM_REF=v26.10.5 TO_REF=v26.10.12 ../devflow/actions/issues-in-range/issues-in-range.sh
+NUMBER=362 MARKER=devflow:test BODY='hola' ../devflow/actions/upsert-comment/upsert-comment.sh
 ROUTINE=plan ISSUE=362 \
   ROUTINE_URL=$(secret-tool lookup service devflow-routine-plan account url) \
   ROUTINE_TOKEN=$(secret-tool lookup service devflow-routine-plan account token) \
