@@ -131,7 +131,8 @@ except Exception:
     print(open(sys.argv[1]).read()[:500], file=sys.stderr)' "$tmp"
             exit 1
         fi
-        python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["claude_code_session_url"])' "$tmp" \
+        # La API devuelve el id con prefijo `cse_`; el link de la web usa `session_`.
+        python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["claude_code_session_url"].replace("/code/cse_", "/code/session_", 1))' "$tmp" \
             || die "respuesta sin claude_code_session_url"
         ;;
     *)
