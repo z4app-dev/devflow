@@ -1,0 +1,47 @@
+name: devflow · set-issue-fields
+description: Completa los issue fields Rama y PR de un issue. Idempotente.
+inputs:
+  token:
+    description: Token con permiso de escritura de issues e issue fields (el de la App devflow).
+    required: true
+  issue:
+    description: Número del issue.
+    required: true
+  branch:
+    description: Nombre de la rama (vacío = no tocar).
+    required: false
+    default: ''
+  pr:
+    description: URL del PR (vacío = no tocar).
+    required: false
+    default: ''
+  repo:
+    description: owner/repo del issue.
+    required: false
+    default: ${{ github.repository }}
+  config:
+    description: Ruta a la config de devflow.
+    required: false
+    default: .devflow/config.yml
+  dry_run:
+    description: '"true" para imprimir qué haría sin mutar nada.'
+    required: false
+    default: 'false'
+outputs:
+  changed:
+    description: '"true" si cambió algún campo.'
+    value: ${{ steps.run.outputs.changed }}
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      run: '"$GITHUB_ACTION_PATH/set-issue-fields.sh"'
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        ISSUE: ${{ inputs.issue }}
+        BRANCH: ${{ inputs.branch }}
+        PR_URL: ${{ inputs.pr }}
+        REPO: ${{ inputs.repo }}
+        CONFIG: ${{ inputs.config }}
+        DRY_RUN: ${{ inputs.dry_run }}

@@ -1,0 +1,43 @@
+name: devflow · fire-routine
+description: Dispara una Routine de devflow (plan | implement) para un issue y devuelve el link de la sesión.
+inputs:
+  routine:
+    description: plan | implement
+    required: true
+  issue:
+    description: Número del issue.
+    required: true
+  repo:
+    description: owner/repo del issue.
+    required: false
+    default: ${{ github.repository }}
+  url:
+    description: URL de disparo de la Routine (…/v1/claude_code/routines/<id>/fire).
+    required: true
+  token:
+    description: Token de la Routine (secret). Nunca se loguea.
+    required: true
+  dry_run:
+    description: '"true" para imprimir qué haría sin disparar nada.'
+    required: false
+    default: 'false'
+outputs:
+  session_url:
+    description: Link a la sesión (con prefijo session_). Vacío si falló.
+    value: ${{ steps.run.outputs.session_url }}
+  error:
+    description: Mensaje de error sin secretos (vacío si anduvo).
+    value: ${{ steps.run.outputs.error }}
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      run: '"$GITHUB_ACTION_PATH/fire-routine.sh"'
+      env:
+        ROUTINE: ${{ inputs.routine }}
+        ISSUE: ${{ inputs.issue }}
+        REPO: ${{ inputs.repo }}
+        ROUTINE_URL: ${{ inputs.url }}
+        ROUTINE_TOKEN: ${{ inputs.token }}
+        DRY_RUN: ${{ inputs.dry_run }}

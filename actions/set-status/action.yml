@@ -1,0 +1,49 @@
+name: devflow · set-status
+description: Setea el Status de un issue en el project de devflow (lo agrega si falta). Idempotente.
+inputs:
+  token:
+    description: Token con Projects write (el de la App devflow).
+    required: true
+  issue:
+    description: Número del issue.
+    required: true
+  status:
+    description: Clave del Status en .devflow/config.yml (backlog, ready, plan, in_progress, review, merged, staging, done).
+    required: true
+  only_from:
+    description: Clave de Status. Si se indica, sólo mueve el issue cuando está en ese Status (si no, advierte y no hace nada).
+    required: false
+    default: ''
+  repo:
+    description: owner/repo del issue.
+    required: false
+    default: ${{ github.repository }}
+  config:
+    description: Ruta a la config de devflow.
+    required: false
+    default: .devflow/config.yml
+  dry_run:
+    description: '"true" para imprimir qué haría sin mutar nada.'
+    required: false
+    default: 'false'
+outputs:
+  changed:
+    description: '"true" si cambió el Status.'
+    value: ${{ steps.run.outputs.changed }}
+  previous:
+    description: Nombre del Status anterior (vacío si no tenía).
+    value: ${{ steps.run.outputs.previous }}
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      run: '"$GITHUB_ACTION_PATH/set-status.sh"'
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        ISSUE: ${{ inputs.issue }}
+        STATUS: ${{ inputs.status }}
+        ONLY_FROM: ${{ inputs.only_from }}
+        REPO: ${{ inputs.repo }}
+        CONFIG: ${{ inputs.config }}
+        DRY_RUN: ${{ inputs.dry_run }}

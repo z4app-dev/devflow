@@ -1,0 +1,42 @@
+name: devflow · issues-in-range
+description: Issues cerrados por PRs mergeados cuyo merge commit está en from_ref..to_ref.
+inputs:
+  token:
+    description: Token con lectura de PRs (el de la App devflow).
+    required: true
+  from_ref:
+    description: Ref inicial, excluida (p. ej. el tag anterior).
+    required: true
+  to_ref:
+    description: Ref final, incluida (p. ej. el tag nuevo).
+    required: true
+  repo:
+    description: owner/repo.
+    required: false
+    default: ${{ github.repository }}
+  path:
+    description: Ruta del checkout (con historia completa y tags).
+    required: false
+    default: .
+outputs:
+  issues:
+    description: Array JSON con los números de issue.
+    value: ${{ steps.run.outputs.issues }}
+  prs:
+    description: Array JSON con los números de PR del rango.
+    value: ${{ steps.run.outputs.prs }}
+  count:
+    description: Cantidad de issues.
+    value: ${{ steps.run.outputs.count }}
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      run: '"$GITHUB_ACTION_PATH/issues-in-range.sh"'
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        FROM_REF: ${{ inputs.from_ref }}
+        TO_REF: ${{ inputs.to_ref }}
+        REPO: ${{ inputs.repo }}
+        GIT_DIR_PATH: ${{ inputs.path }}

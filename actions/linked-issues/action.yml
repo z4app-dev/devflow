@@ -1,0 +1,30 @@
+name: devflow · linked-issues
+description: Devuelve los issues que un PR cierra (closingIssuesReferences), como JSON.
+inputs:
+  token:
+    description: Token con lectura de PRs e issues (el de la App devflow).
+    required: true
+  pr:
+    description: Número del PR.
+    required: true
+  repo:
+    description: owner/repo del PR.
+    required: false
+    default: ${{ github.repository }}
+outputs:
+  issues:
+    description: Array JSON con los números de issue (sólo del mismo repo).
+    value: ${{ steps.run.outputs.issues }}
+  count:
+    description: Cantidad de issues.
+    value: ${{ steps.run.outputs.count }}
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      run: '"$GITHUB_ACTION_PATH/linked-issues.sh"'
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        PR: ${{ inputs.pr }}
+        REPO: ${{ inputs.repo }}
